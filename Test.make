@@ -64,9 +64,9 @@ ifeq ($(config),release)
 endif
 
 OBJECTS := \
-	$(OBJDIR)/main.o \
 	$(OBJDIR)/read_file.o \
 	$(OBJDIR)/framework_opengl.o \
+	$(OBJDIR)/main.o \
 
 RESOURCES := \
 
@@ -127,13 +127,13 @@ $(GCH): $(PCH)
 	$(SILENT) $(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 endif
 
-$(OBJDIR)/main.o: main.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 $(OBJDIR)/read_file.o: c_scripts/read_file.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(CFLAGS) -o "$@" -c "$<"
 $(OBJDIR)/framework_opengl.o: cpp_scripts/framework_opengl.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(CXXFLAGS) -o "$@" -c "$<"
+$(OBJDIR)/main.o: main.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 

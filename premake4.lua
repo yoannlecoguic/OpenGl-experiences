@@ -11,7 +11,7 @@ configurations { "Debug", "Release" }
 	project "Test"
 		kind "ConsoleApp"
 		language "C++"
-		files { "headers/**.h", "main.cpp", "c_scripts/**.c", "cpp_scripts/**.cpp"}
+		files { "headers/**.h", "c_scripts/**.c", "cpp_scripts/**.cpp", "main.cpp"}
 
 	links {"GL", "GLEW", "X11"}
 	UseLibs(usedlibs)

@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <GL/glew.h>
 
-#include "../headers/framework_opengl.h"
-
 extern "C" {
 	#include "../headers/read_file.h"
 }
+
+#include "../headers/framework_opengl.h"
 
 //Display compilation errors from the OpenGL shader compiler
 void print_log(GLuint object)
@@ -38,35 +38,25 @@ void print_log(GLuint object)
 //Compile the shader from file 'filename', with error handling
 GLuint create_shader(const char* filename, GLenum type)
 {
-	const GLchar* source = file_read(filename);
+	const GLchar* source[1] = { read_file(filename) };
 	if (source == NULL)
 	{
 		fprintf(stderr, "Error opening %s: ", filename); perror("");
 		return 0;
 	}
-	GLuint res = glCreateShader(type);
-	const GLchar* sources[2] =
-	{
-		#ifdef GL_ES_VERSION_2_0
-		"#version 100\n"
-		"#define GLES2\n",
-		#else
-		"#version 120\n",
-		#endif
-		source
-	};
-	glShaderSource(res, 2, sources, NULL);
-	free((void*)source);
+	GLuint shader_type = glCreateShader(type);
 
-	glCompileShader(res);
+	glShaderSource(shader_type, 1, source, NULL);
+
+	glCompileShader(shader_type);
 	GLint compile_ok = GL_FALSE;
-	glGetShaderiv(res, GL_COMPILE_STATUS, &compile_ok);
+	glGetShaderiv(shader_type, GL_COMPILE_STATUS, &compile_ok);
 	if (compile_ok == GL_FALSE) {
 		fprintf(stderr, "%s:", filename);
-		print_log(res);
-		glDeleteShader(res);
+		print_log(shader_type);
+		glDeleteShader(shader_type);
 		return 0;
 	}
 
-	return res;
+	return shader_type;
 }

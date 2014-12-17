@@ -1,65 +1,51 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <GL/glew.h>
 
+//Opengl
+#include <GL/glew.h>
 #include <GL/freeglut.h>
 
-extern "C" {
+//C scripts
+/*extern "C" {
 	#include "headers/read_file.h"
-}
+}*/
+
+//Cpp library
+#include "headers/framework_opengl.h"
+
 GLuint program;
 GLint attribute_coord2d;
-
-
-GLfloat triangle_vertices[] = {
-	 1.0,  1.0,
-	 1.0, -1.0,
-	-1.0,  1.0,
-	-1.0, -1.0,
-	 1.0, -1.0,
-	-1.0,  1.0
-};
+GLuint vbo_triangle;
 
 int init_resources(void)
 {
 	GLint compile_ok = GL_FALSE, link_ok = GL_FALSE;
+	GLuint vertex_shader, fragment_shader;
 
-	GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-	const char *vs_source = read_file("shaders/vertex.glsl");
-	glShaderSource(vs, 1, &vs_source, NULL);
-	glCompileShader(vs);
-	glGetShaderiv(vs, GL_COMPILE_STATUS, &compile_ok);
-	if (0 == compile_ok)
-	{
-		fprintf(stderr, "Error in vertex shader\n");
-		return 0;
-	}
-
-	GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-	const char *fs_source =
-	"#version 120           \n"
-	"void main(void) {        "
-	"  gl_FragColor[0] = 0.0; "
-	"  gl_FragColor[1] = 0.8; "
-	"  gl_FragColor[2] = 1.0; "
-	"}";
-	glShaderSource(fs, 1, &fs_source, NULL);
-	glCompileShader(fs);
-	glGetShaderiv(fs, GL_COMPILE_STATUS, &compile_ok);
-	if (!compile_ok) {
-		fprintf(stderr, "Error in fragment shader\n");
-		return 0;
-	}
+	if ((vertex_shader = create_shader("shaders/vertex.glsl", GL_VERTEX_SHADER))   == 0) return 0;
+	if ((fragment_shader = create_shader("shaders/fragment.glsl", GL_FRAGMENT_SHADER)) == 0) return 0;
 
 	program = glCreateProgram();
-	glAttachShader(program, vs);
-	glAttachShader(program, fs);
+	glAttachShader(program, vertex_shader);
+	glAttachShader(program, fragment_shader);
 	glLinkProgram(program);
 	glGetProgramiv(program, GL_LINK_STATUS, &link_ok);
 	if (!link_ok) {
 		fprintf(stderr, "glLinkProgram:");
+		print_log(program);
 		return 0;
 	}
+
+	GLfloat triangle_vertices[] = {
+		0.0,  0.8,
+		-0.8, -0.8,
+		0.8, -0.8,
+	};
+
+	glGenBuffers(1, &vbo_triangle);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_vertices), triangle_vertices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	const char* attribute_name = "coord2d";
 	attribute_coord2d = glGetAttribLocation(program, attribute_name);
@@ -77,9 +63,14 @@ void onDisplay()
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	glUseProgram(program);
-	glEnableVertexAttribArray(attribute_coord2d);
+	// Enable alpha
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	glUseProgram(program);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle);
+	glEnableVertexAttribArray(attribute_coord2d);
 	/* Describe our vertices array to OpenGL (it can't guess its format automatically) */
 	glVertexAttribPointer(
 	attribute_coord2d, // attribute
@@ -87,12 +78,15 @@ void onDisplay()
 	GL_FLOAT,          // the type of each element
 	GL_FALSE,          // take our values as-is
 	0,                 // no extra data between each position
-	triangle_vertices  // pointer to the C array
+	0                  // offset of the first element
 	);
 
 	/* Push each element in buffer_vertices to the vertex shader */
 	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	//Cleaning
 	glDisableVertexAttribArray(attribute_coord2d);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	/* Display the result */
 	glutSwapBuffers();
@@ -101,6 +95,7 @@ void onDisplay()
 void free_resources()
 {
 	glDeleteProgram(program);
+	glDeleteBuffers(1, &vbo_triangle);
 }
 
 int main(int argc, char* argv[])
@@ -108,7 +103,7 @@ int main(int argc, char* argv[])
 	/* Glut-related initialising functions */
 	glutInit(&argc, argv);
 	glutInitContextVersion(2,0);
-	glutInitDisplayMode(GLUT_RGBA|GLUT_DOUBLE|GLUT_DEPTH);
+	glutInitDisplayMode(GLUT_RGBA|GLUT_ALPHA|GLUT_DOUBLE|GLUT_DEPTH);
 	glutInitWindowSize(640, 480);
 	glutCreateWindow("My First Triangle");
 
