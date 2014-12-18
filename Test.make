@@ -66,6 +66,7 @@ endif
 OBJECTS := \
 	$(OBJDIR)/read_file.o \
 	$(OBJDIR)/framework_opengl.o \
+	$(OBJDIR)/objects.o \
 	$(OBJDIR)/main.o \
 
 RESOURCES := \
@@ -131,6 +132,9 @@ $(OBJDIR)/read_file.o: c_scripts/read_file.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(CFLAGS) -o "$@" -c "$<"
 $(OBJDIR)/framework_opengl.o: cpp_scripts/framework_opengl.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(CXXFLAGS) -o "$@" -c "$<"
+$(OBJDIR)/objects.o: cpp_scripts/objects.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 $(OBJDIR)/main.o: main.cpp

@@ -1,9 +1,11 @@
 #version 120
 
-attribute vec2 coord2d;
-attribute vec4 color4d;
-varying   vec4 f_color4d;
+uniform   mat4  mvp;
+uniform   mat4  matrix;
+attribute vec3  coord3d;
+attribute vec3  vcolor;
+varying   vec3  fcolor;
 void main(void) {
-	gl_Position = vec4(coord2d, 0.0, 1.0);
-	f_color4d   = color4d;
+	gl_Position = mvp * (matrix * vec4(coord3d, 1.0));
+	fcolor      = vcolor;
 }
